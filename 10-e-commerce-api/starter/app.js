@@ -1,1 +1,50 @@
-console.log('E-Commerce API');
+require('dotenv').config()
+require('express-async-errors')
+// Express
+const express = require('express')
+const app = express()
+
+//rest of the packages
+const morgan = require('morgan')
+
+// StatusCode
+const { StatusCodes } = require('http-status-codes')
+
+// Database
+const connectDB = require('./db/connect')
+
+// Routers
+const authRouter = require('./routes/authRoutes')
+
+// Middleware
+const notFoundMiddleware = require('./middleware/not-found')
+const errorHandlerMiddleware = require('./middleware/error-handler')
+
+app.use(morgan('tiny'))
+app.use(express.json())
+app.get('/', async (req, res) => {
+  res.status(StatusCodes.OK).send('OK')
+})
+app.use('/api/v1/auth', authRouter)
+
+app.use(notFoundMiddleware)
+app.use(errorHandlerMiddleware)
+
+const PORT = process.env.port || 5000
+
+const start = async () => {
+  try {
+    await connectDB(process.env.MONGO_URL)
+    app.listen(PORT, async () => {
+      console.log(`Server is listening on port ${PORT}`)
+    })
+  } catch (error) {
+    // console.log(error)
+  }
+}
+start()
+// app.listen(PORT, async () => {
+//   try {
+//     console.log(`Server is listening on port ${PORT}`)
+//   } catch (error) {}
+// })
